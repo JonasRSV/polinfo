@@ -1,0 +1,25 @@
+DROP TYPE IF EXISTS party;
+CREATE TYPE party AS ENUM ('M', 'S', 'V', 'SD', 'C', 'KD', 'L', 'MP', 'FI', 'P');
+
+CREATE TABLE IF NOT EXISTS anforande (
+  id serial PRIMARY KEY,
+  dokid VARCHAR (255) NOT NULL, 
+  time TIMESTAMP NOT NULL,
+  affiliation party NOT NULL,
+  content TEXT NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS anforandetag (
+  anforande integer,
+  tag TEXT NOT NULL,
+
+  UNIQUE (tag, anforande),
+  FOREIGN KEY(anforande) REFERENCES anforande(id)
+);
+
+
+-- Debug
+INSERT INTO anforande (dokid, time, affiliation, content) 
+  VALUES ('dokid1', '2003-2-1', 'V', 'Hello');
+INSERT INTO anforandetag (anforande, tag) VALUES (1, 'WAR!');

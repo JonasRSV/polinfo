@@ -1,0 +1,87 @@
+#!/bin/bash
+
+set -e
+
+
+fg_black="$(tput setaf 0)"
+fg_red="$(tput setaf 1)"
+fg_green="$(tput setaf 2)"
+fg_yellow="$(tput setaf 3)"
+fg_blue="$(tput setaf 4)"
+fg_magenta="$(tput setaf 5)"
+fg_cyan="$(tput setaf 6)"
+fg_white="$(tput setaf 7)"
+reset="$(tput sgr0)"
+
+if ! command -v cargo 
+then 
+  echo "${fg_red}cargo not found Please install rust${fg_reset}"
+  echo "Installation instructions can be found here:"
+  echo "       https://www.rust-lang.org/tools/install"
+  exit 1
+fi
+
+if ! command -v docker 
+then 
+  echo "${fg_red}Docker not found Please install it${fg_reset}"
+  echo "Installation instructions can be found here:"
+  echo "       https://docs.docker.com/engine/install/"
+  exit 1
+fi
+
+
+database () {
+  echo "${fg_magenta}Starting database${fg_reset}"
+
+  # Every time the container is launched it changes the permissions 
+  # on the data files so only root can rw. This makes docker crash the
+  # next time around since it is run in user-space on this machine.
+  # A solution is to set the permissions each time before launching.
+  sudo chmod -R 777 data
+  docker build --no-cache -t  polidb:latest -f Dockerfile/Dockerfile.postgres .
+
+  docker run  \
+    -e "POSTGRES_USER=polidb" \
+    -e "POSTGRES_PASSWORD=develop" \
+    -p 5432:5432 \
+    -v $PWD/data:/var/lib/postgresql/data \
+    polidb:latest
+
+
+
+  echo "${fg_green}Success!${fg_reset}"
+} 
+
+print_help() {
+      echo ""
+      echo ""
+      echo "${fg_green}  ******** Poli build script ******** ${fg_black}"
+      echo " "
+      echo "${fg_white} options:"
+      echo "-h, --help  show brief help"
+      echo "${fg_magenta}-db --database${fg_white}"
+      exit 0
+}
+
+
+#while test $# -gt 0; do
+case "$1" in
+  -h|--help)
+    print_help
+    break
+    ;;
+  --database)
+    database
+    exit 0
+    ;;
+  -db)
+    database
+    exit 0
+    ;;
+  *)
+    print_help
+    break
+    ;;
+esac
+#done
+print_help

@@ -1,0 +1,4 @@
+FROM postgres:13.3
+COPY schema.psql /docker-entrypoint-initdb.d/schema.sql
+
+

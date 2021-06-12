@@ -1,0 +1,8 @@
+polinfo/target
+data
+**/data
+polinfo-web/node_modules
+**/.venv
+.venv
+polinfo-dg/backup-data/
+polinfo-dg/data

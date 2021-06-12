@@ -2,7 +2,7 @@
 
 En hemsida som visualiserar data man kan hämta ifrån https://data.riksdagen.se, just nu kan man
 
-* [Historiska Wordclouds av anföranden](#anföranden) (Se populära ord som partier använt i sina anföranden under olika tidsperioder)
+* [Se Wordclouds av anföranden givna under valda perioder](#anföranden) (Se ord som partier använt i sina anföranden under olika tidsperioder)
 
 
 

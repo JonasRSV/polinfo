@@ -7,5 +7,7 @@ En hemsida som visualiserar data man kan hämta ifrån https://data.riksdagen.se
 
 
 #### Anföranden
+Notera: WordClouds använder sig av en [ord standardiserings lista](polinfo-explore/word-standards.txt) samt en ['politiska ord' lista](polinfo-explore/allowed-words.txt). Bidrag till dessa listor är väldigt välkommna!
+
 
 ![anforanden exempel](art/anforanden.png)

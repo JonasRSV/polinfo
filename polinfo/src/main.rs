@@ -5,8 +5,7 @@ use deadpool_postgres::{Client, Pool};
 use tokio_postgres::NoTls;
 use actix_web::middleware::Logger;
 use std::sync::{Arc, RwLock};
-use std::collections::hash_map::HashMap;
-use log::{info, debug};
+use log::info;
 
 mod core;
 mod db;
@@ -63,48 +62,23 @@ async fn prefetch_prefixsum_cache(
 
     let db_client: Client = db_pool.get().await.unwrap();
 
-    let mut prefixsums = Vec::new();
     for affiliation in ["SD", "V", "S", "MP", "L", "KD", "M", "C"].iter() {
         let affiliation_string = String::from(affiliation.to_owned());
         info!("Calculating prefixsum for {}", affiliation_string);
 
         let mut tts = db::get_anforande_texttimes(&db_client, 
-            &core::AnforandeRequest {
-                affiliation: affiliation_string.clone().into()
-            }).await.unwrap();
+                 Some(affiliation_string.clone().into())).await.unwrap();
 
-        let mut p = prefixsum_factory.from_texttimes(&mut tts);
-        let norm = prefixsum::norm_count(&p);
+        let p = prefixsum_factory.from_texttimes(&mut tts);
 
-        // Normalize
-        prefixsum::div_by_count(&mut p, norm);
-        prefixsums.push((affiliation_string.clone(), p.clone()));
+        c.add(affiliation_string.to_owned(), p);
     }
 
+        let mut tts = db::get_anforande_texttimes(&db_client, 
+            None).await.unwrap();
+        let p = prefixsum_factory.from_texttimes(&mut tts);
 
-    // normalize by averages to emphasize parties unique words
-    info!("Calculating averages");
-    // 1. Calculate Averages
-    let mut avg_word_counts = HashMap::new();
-    for (_, pf) in prefixsums.iter() {
-        let n = prefixsum::norm_words(pf);
-        avg_word_counts = prefixsum::add_maps(&avg_word_counts, &n);
-    }
-
-    for key in avg_word_counts.clone().keys() {
-        let s = avg_word_counts.get_mut(key).unwrap();
-        *s /= prefixsums.len() as f64;
-    }
-
-    info!("Norm by averages");
-    // 2. Normalize perfixsums by average
-    for (affiliation, pf) in prefixsums.iter_mut() {
-        prefixsum::div_by_words(pf, &avg_word_counts);
-
-        println!("Adding to Cache {}", affiliation);
-
-        c.add(affiliation.to_owned(), pf.to_owned());
-    }
+        c.add(core::Affiliation::ALL.into(), p);
 }
 
 #[actix_web::main]

@@ -5,6 +5,7 @@ import * as d3 from "d3";
 import { onMount } from 'svelte';
 import DoubleRangeSlider from './DoubleRangeSlider.svelte'
 import { getAnforandePrefixSum, subtract} from '../../api/anforande.js';
+import { div_by_scalar, div_by_counts, sub_by_counts } from "../../utils/counts.js";
 
 export let height;
 export let affiliation;
@@ -13,7 +14,11 @@ var loading = true;
 
 var wordCounts = []
 var dates = []
+
 var prefixSum = [];
+
+// A prefix sum of all parties
+var allPrefixSum = [];
 
 
 let wordCountsFromCounts = (counts) => {
@@ -34,17 +39,27 @@ let onIntervalPick = (fromIndex, toIndex) => {
   toIndex -= 1;
 
   let end = prefixSum[toIndex];
-  var start;
+  let allEnd = allPrefixSum[toIndex];
+  var start, allStart;
+
   if (fromIndex < 0) {
     start = {};
+    allStart = {};
   } else {
     start = prefixSum[fromIndex];
+    allStart = allPrefixSum[fromIndex];
   }
 
-  console.log("end", end)
+  console.log(affiliation, "end", end)
 
-  wordCounts = wordCountsFromCounts(subtract(end, start))
-  console.log("wordCount", wordCounts)
+  let partyCounts = subtract(end, start)
+  let allCounts = div_by_scalar(subtract(allEnd, allStart), 8);
+
+  console.log("party counts", partyCounts);
+  console.log("all counts", allCounts);
+
+  wordCounts = wordCountsFromCounts(div_by_counts(partyCounts, allCounts))
+  console.log(affiliation, "wordCount", wordCounts)
 }
 
 
@@ -53,7 +68,11 @@ onMount(async () => {
   d3.select(".anforande-wordcloud-container-" + affiliation)
   .style('height', height + "px")
 
+  console.log("Fetching", affiliation);
   let res = await getAnforandePrefixSum(affiliation);
+  console.log("Fetching All");
+  let allRes = await getAnforandePrefixSum("ALL");
+
   
 
 
@@ -62,6 +81,7 @@ onMount(async () => {
   dates = ["beginning of time"];
   dates.push(...res.dates)
   prefixSum = res.counts
+  allPrefixSum = allRes.counts;
 
   onIntervalPick(0, dates.length - 1);
 

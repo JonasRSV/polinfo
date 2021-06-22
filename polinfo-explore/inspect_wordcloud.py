@@ -7,6 +7,7 @@ import pathlib
 import psycopg2
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
+from collections import Counter
 
 
 def remove_characters(text: str, characters):
@@ -29,14 +30,14 @@ if __name__ == "__main__":
 
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT content, time FROM anforande WHERE affiliation = 'SD' AND time > '2016-01-01' AND time < '2016-12-01';")
+        "SELECT content, time FROM anforande WHERE affiliation = 'SD';")
 
     print("Generating Text")
     text = ""
     for (content, tid) in cursor.fetchall():
         text += content
 
-    with open("swedish-stop-words.txt") as stop_words_file:
+    with open("disallowed-words.txt") as stop_words_file:
         stop_words = set(stop_words_file.read().split("\n"))
 
     with open("allowed-words.txt") as allowed_words_file:
@@ -61,6 +62,9 @@ if __name__ == "__main__":
         standardized_words.append(word)
 
     words = standardized_words
+
+    print(Counter(words).most_common(100))
+    print("total words", len(words))
 
     words = list(filter(lambda word: word in allowed_words, words))
 

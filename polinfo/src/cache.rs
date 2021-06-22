@@ -41,9 +41,11 @@ impl<Key: Hash + Eq + Serialize + DeserializeOwned,
                         persist_config,
                         map: HashMap::new()
                     },
-                    Ok(file) => {
+                    Ok(mut file) => {
+                        let mut s = String::new();
+                        file.read_to_string(&mut s).unwrap();
                         let map: HashMap<Key, Value> 
-                            = serde_json::from_reader(file).unwrap();
+                            = serde_json::from_str(&s).unwrap();
 
                         KVCache {
                             persist_config,

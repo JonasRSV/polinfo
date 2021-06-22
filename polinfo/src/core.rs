@@ -22,6 +22,7 @@ impl Config {
 
 #[derive(Deserialize, Clone, From)]
 pub enum Affiliation {
+    ALL,
     MP,
     V,
     L,
@@ -36,6 +37,7 @@ pub enum Affiliation {
 impl From<Affiliation> for String {
     fn from(a: Affiliation) -> Self {
         match a {
+            Affiliation::ALL => "ALL".to_owned(),
             Affiliation::MP => "MP".to_owned(),
             Affiliation::V => "V".to_owned(),
             Affiliation::L => "L".to_owned(),
@@ -60,6 +62,7 @@ impl Into<Affiliation> for String {
             "M" => Affiliation::M,
             "C" => Affiliation::C,
             "L" => Affiliation::L,
+            "ALL" => Affiliation::ALL,
             _ => Affiliation::Other
 
         }

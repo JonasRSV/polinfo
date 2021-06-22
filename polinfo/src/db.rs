@@ -26,16 +26,20 @@ impl ResponseError for DBError {
     }
 }
 
-pub async fn get_anforande_texttimes(client: &Client, request: &core::AnforandeRequest) 
+pub async fn get_anforande_texttimes(client: &Client, affiliation: Option<String>) 
     -> Result<Vec<core::TextTime>, DBError> { 
 
-        let affiliation: String = String::from(request.affiliation.clone());
+        let statement = match affiliation {
+            None => client.prepare("SELECT content, time FROM anforande;").await.unwrap(),
+            Some(a) => {
+                let mut _statement = include_str!(
+                    "../sql/anforande_by_affiliation.psql").to_string();
+                _statement = _statement.replace("$1", 
+                    format!("'{}'", a).as_str());
 
-        let mut _statement = include_str!("../sql/anforande_by_affiliation.psql").to_string();
-        _statement = _statement.replace("$1", format!("'{}'", affiliation).as_str());
-
-
-        let statement = client.prepare(&_statement).await.unwrap();
+                client.prepare(&_statement).await.unwrap()
+            }
+        };
 
         // postgresql query cannot accept strings as enums and I cannot declare the psql enum in
         // rust so the query formatting is unusable in my case. 

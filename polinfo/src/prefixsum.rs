@@ -1,7 +1,8 @@
 use crate::core;
 use crate::textprocessing;
 use std::collections::HashMap;
-use log::{info, debug};
+use chrono::NaiveDateTime;
+use log::info;
 
 
 pub struct PrefixSumFactory {
@@ -30,10 +31,9 @@ impl PrefixSumFactory {
             Ok(wordifier) => Ok(
                 PrefixSumFactory{
                     wordifier,
-                    drop_less_than: 5.0
+                    drop_less_than: 50.0
                 })
         }
-
     }
 
     fn purge_rare_words(&self, prefixsum: &mut core::PrefixSum) {
@@ -43,8 +43,6 @@ impl PrefixSumFactory {
             .filter(|(_, count)| **count < self.drop_less_than)
             .map(|(word, _)| word.clone())
             .collect();
-
-        //println!("most common {:?}", word_count.iter().rev().take(100));
 
         for count in prefixsum.counts.iter_mut() {
             for word in not_common_enough.iter() {
@@ -65,21 +63,28 @@ impl PrefixSumFactory {
         let mut counts = Vec::new();
         let mut dates = Vec::new();
 
-        let mut anchor = tts.first().unwrap().time;
         let mut word_counts = HashMap::new();
+        let mut current_time: NaiveDateTime = chrono::NaiveDate::from_ymd(
+            1995, 1, 1).and_hms(0, 0, 0);
 
+        let mut tts_iter = tts.iter().peekable();
 
-        for tt in tts.iter() {
+        while tts_iter.peek().is_some() {
+            let tt = tts_iter.next().unwrap();
+            while  current_time < tt.time {
+                current_time = current_time + chrono::Duration::weeks(16);
+
+                counts.push(word_counts.clone());
+                dates.push(current_time.clone());
+
+            }
+
             let words = self.wordifier.words(&tt.content);
             PrefixSumFactory::accumulate_word_counts(&words, &mut word_counts);
-            if tt.time.signed_duration_since(anchor).num_weeks() > 12 {
-                dates.push(tt.time);
-                counts.push(word_counts.clone());
 
-                anchor = tt.time;
+            info!("{} - Unique Words {}  \r", current_time, word_counts.len());
 
-                info!("{} - Unique Words {}", tt.time, word_counts.len());
-            }
+
         }
 
         let mut prefixsum = core::PrefixSum {
@@ -94,70 +99,6 @@ impl PrefixSumFactory {
         prefixsum
     }
 }
-
-pub fn norm_words(prefixsum: &core::PrefixSum) -> HashMap<String, f64> {
-    let mut word_counts = HashMap::new();
-    for count in prefixsum.counts.iter() {
-        for key in count.keys() {
-            if !word_counts.contains_key(key) {
-                word_counts.insert(key.to_owned(), 0.0);
-            }
-
-            *word_counts.get_mut(key).unwrap() += count.get(key).unwrap();
-        }
-    }
-
-    word_counts.clone()
-}
-
-pub fn norm_count(prefixsum: &core::PrefixSum) -> f64 {
-    norm_words(prefixsum).values().sum() 
-}
-
-pub fn div_by_words(lhs: &mut core::PrefixSum, rhs: &HashMap<String, f64>) {
-    for count in lhs.counts.iter_mut() {
-        let keys: Vec<String> = count.keys().into_iter().map(|s| s.to_owned()).collect();
-        for key in keys.iter() {
-            count.insert(key.to_owned(), count.get(key).unwrap() / rhs.get(key).unwrap());
-        }
-    }
-}
-
-pub fn div_by_count(lhs: &mut core::PrefixSum, rhs: f64) {
-    for count in lhs.counts.iter_mut() {
-        let keys: Vec<String> = count.keys().into_iter().map(|s| s.to_owned()).collect();
-        for key in keys.iter() {
-            count.insert(key.to_owned(), count.get(key).unwrap() / rhs);
-        }
-    }
-}
-
-pub fn add_maps(lhs: &HashMap<String, f64>, rhs: &HashMap<String, f64>) 
-    -> HashMap<String, f64>{
-    let mut word_counts = HashMap::new();
-
-    for key in lhs.keys() {
-        if !word_counts.contains_key(key) {
-            word_counts.insert(key.to_owned(), 0.0);
-        }
-
-        let m = word_counts.get_mut(key).unwrap();
-        *m += lhs.get(key).unwrap();
-    }
-
-    for key in rhs.keys() {
-        if !word_counts.contains_key(key) {
-            word_counts.insert(key.to_owned(), 0.0);
-        }
-
-        let m = word_counts.get_mut(key).unwrap();
-        *m += rhs.get(key).unwrap();
-    }
-
-
-    word_counts
-}
-
 
 #[cfg(test)]
 mod tests {

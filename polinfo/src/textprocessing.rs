@@ -50,7 +50,10 @@ pub struct Wordifier {
     // E.g 
     // Cookies -> Cookie
     // Cookie -> Cookie
-    standard: HashMap<String, String>
+    standard: HashMap<String, String>,
+
+    filterre: Regex
+
 }
 
 impl Wordifier {
@@ -95,20 +98,26 @@ impl Wordifier {
             Wordifier{
                 disallowed,
                 standard,
+                filterre: Regex::new("[%/\\.,!\\?\\-':;\\d\\\\\\*\\(\\)]+").unwrap()
             })
     }
 
     pub fn words(&self, s: &String) -> Vec<String> {
-        let re = Regex::new("[\\.,!\\?\\-':;\\d\\\\\\*\\(\\)]+").unwrap();
-        
-        re.replace_all(
-            s.to_lowercase().as_str(), " ")
-            .to_string()
+        self.filterre.replace_all(s, " ")
             .split_whitespace()
-            .map(|word| word.trim().to_owned())
-            .map(|w| self.standard.get(&w).unwrap_or(&w).to_owned())
-            .filter(|w| !self.disallowed.contains(w))
+            .map(|word| word.trim().to_lowercase())
+            .map(|word| self.standard.get(&word).unwrap_or(&word).to_owned())
+            .filter(|word| !self.disallowed.contains(word))
             .collect()
+
+        //self.filterre.replace_all(
+            //s.to_lowercase().as_str(), " ")
+            //.to_string()
+            //.split_whitespace()
+            //.map(|word| word.trim().to_owned())
+            //.map(|w| self.standard.get(&w).unwrap_or(&w).to_owned())
+            //.filter(|w| !self.disallowed.contains(w))
+            //.collect()
     }
 }
 

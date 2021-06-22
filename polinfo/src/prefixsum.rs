@@ -1,11 +1,12 @@
 use crate::core;
 use crate::textprocessing;
 use std::collections::HashMap;
+use log::{info, debug};
 
 
 pub struct PrefixSumFactory {
     wordifier: textprocessing::Wordifier,
-    keep_top: usize
+    drop_less_than: f64
 
 }
 
@@ -29,7 +30,7 @@ impl PrefixSumFactory {
             Ok(wordifier) => Ok(
                 PrefixSumFactory{
                     wordifier,
-                    keep_top: 3000
+                    drop_less_than: 5.0
                 })
         }
 
@@ -38,24 +39,15 @@ impl PrefixSumFactory {
     fn purge_rare_words(&self, prefixsum: &mut core::PrefixSum) {
         let last = prefixsum.counts.last().unwrap();
 
-        let mut word_count: Vec<(String, f64)> = last
-            .into_iter()
-            .map(|(word, count)| (word.clone(), count.clone()))
-            .collect();
-
-        word_count.sort_by(|(_, a), (_, b)| a.partial_cmp(&b).unwrap());
-
-        let least_common: Vec<String> = word_count
-            .iter()
-            .take(word_count.len() - self.keep_top)
+        let not_common_enough: Vec<String> = last.into_iter()
+            .filter(|(_, count)| **count < self.drop_less_than)
             .map(|(word, _)| word.clone())
             .collect();
 
         //println!("most common {:?}", word_count.iter().rev().take(100));
 
-
         for count in prefixsum.counts.iter_mut() {
-            for word in least_common.iter() {
+            for word in not_common_enough.iter() {
                 count.remove(word);
             }
         }
@@ -80,11 +72,13 @@ impl PrefixSumFactory {
         for tt in tts.iter() {
             let words = self.wordifier.words(&tt.content);
             PrefixSumFactory::accumulate_word_counts(&words, &mut word_counts);
-            if tt.time.signed_duration_since(anchor).num_weeks() > 4 {
+            if tt.time.signed_duration_since(anchor).num_weeks() > 12 {
                 dates.push(tt.time);
                 counts.push(word_counts.clone());
 
                 anchor = tt.time;
+
+                info!("{} - Unique Words {}", tt.time, word_counts.len());
             }
         }
 
@@ -94,6 +88,8 @@ impl PrefixSumFactory {
         };
 
         self.purge_rare_words(&mut prefixsum);
+        info!("Unique words after purging rare {}", 
+            prefixsum.counts.last().unwrap().len());
 
         prefixsum
     }

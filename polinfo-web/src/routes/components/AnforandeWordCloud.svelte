@@ -41,8 +41,10 @@ let onIntervalPick = (fromIndex, toIndex) => {
     start = prefixSum[fromIndex];
   }
 
+  console.log("end", end)
 
   wordCounts = wordCountsFromCounts(subtract(end, start))
+  console.log("wordCount", wordCounts)
 }
 
 

@@ -10,4 +10,4 @@ En hemsida som visualiserar data man kan hämta ifrån https://data.riksdagen.se
 Notera: WordClouds använder sig av en [ord standardiserings lista](polinfo-explore/word-standards.txt) samt en ['filterings' lista](polinfo-explore/disallowed-words.txt). Bidrag till dessa listor är väldigt välkommna!
 
 
-![anforanden exempel](art/anforanden.png)
+  ![anforanden exempel](art/anforanden.png)

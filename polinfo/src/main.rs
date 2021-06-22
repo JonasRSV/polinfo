@@ -64,7 +64,7 @@ async fn prefetch_prefixsum_cache(
     let db_client: Client = db_pool.get().await.unwrap();
 
     let mut prefixsums = Vec::new();
-    for affiliation in ["SD", "MP", "M", "C", "L", "S", "KD", "V"].iter() {
+    for affiliation in ["SD", "V", "S", "MP", "L", "KD", "M", "C"].iter() {
         let affiliation_string = String::from(affiliation.to_owned());
         info!("Calculating prefixsum for {}", affiliation_string);
 

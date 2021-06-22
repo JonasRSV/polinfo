@@ -1,13 +1,11 @@
 ## Polinfo 
 
-En hemsida som visualiserar data man kan hämta ifrån https://data.riksdagen.se, just nu kan man
-
-* [Se Wordclouds av anföranden givna under valda perioder](#anföranden) (Se ord som partier använt i sina anföranden under olika tidsperioder)
+Wordclouds av anföranden ifrån https://data.riksdagen.se.  Använd sliderna för att välja vilken tidsperiod wordcloudsen skall vara genererade ifrån.
 
 
-
-#### Anföranden
-Notera: WordClouds använder sig av en [ord standardiserings lista](polinfo-explore/word-standards.txt) samt en ['filterings' lista](polinfo-explore/disallowed-words.txt). Bidrag till dessa listor är väldigt välkommna!
+![anforanden exempel](art/anforanden.png)
 
 
-  ![anforanden exempel](art/anforanden.png)
+WordClouds använder sig av en [ord standardiserings lista](polinfo-explore/word-standards.txt) samt en ['filterings' lista](polinfo-explore/disallowed-words.txt). Bidrag till dessa listor är välkommna!
+
+

@@ -1346,6 +1346,7 @@ dependencies = [
  "log",
  "regex",
  "serde 1.0.126",
+ "serde_json",
  "tokio-postgres",
 ]
 

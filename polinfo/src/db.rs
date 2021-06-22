@@ -26,15 +26,8 @@ impl ResponseError for DBError {
     }
 }
 
-/// Get all 'anforanden' from database matching the request
-///
-/// # Arguments
-///
-/// * `client` - Database client 
-/// * `request` - information about the type of anforanden to retrieve
-///
-pub async fn get_anforanden(client: &Client, request: &core::AnforandeRequest) 
-    -> Result<Vec<core::Anforande>, DBError> { 
+pub async fn get_anforande_texttimes(client: &Client, request: &core::AnforandeRequest) 
+    -> Result<Vec<core::TextTime>, DBError> { 
 
         let affiliation: String = String::from(request.affiliation.clone());
 
@@ -57,11 +50,11 @@ pub async fn get_anforanden(client: &Client, request: &core::AnforandeRequest)
         let response = match db_response {
                 Ok(res) => Ok(res
                     .iter()
-                    .map(|row| core::Anforande {
+                    .map(|row| core::TextTime {
                         content: row.get("content"),
                         time: row.get("time")                    
                     })
-                    .collect::<Vec<core::Anforande>>()),
+                    .collect::<Vec<core::TextTime>>()),
                 Err(err) => Err(DBError::from(err))
 
         };

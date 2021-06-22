@@ -12,7 +12,7 @@ use std::io::BufRead;
 
 #[derive(Deserialize)]
 pub struct WordifierConfig {
-    pub allowed_file: PathBuf,
+    pub disallowed_file: PathBuf,
     pub standard_file: PathBuf,
 }
 
@@ -44,7 +44,7 @@ impl From<ConfigError> for WordifierError {
 
 pub struct Wordifier {
     // Words which we calculate Prefix Sums for
-    allowed: HashSet<String>,
+    disallowed: HashSet<String>,
 
     // Standardization mapping of strings
     // E.g 
@@ -54,14 +54,14 @@ pub struct Wordifier {
 }
 
 impl Wordifier {
-    fn parse_allowed(reader: std::io::BufReader<File>) 
+    fn parse_disallowed(reader: std::io::BufReader<File>) 
         -> Result<HashSet<String>, WordifierError> {
-            let allowed: HashSet<String> = reader
+            let disallowed: HashSet<String> = reader
                 .lines()
                 .map(|word| word.unwrap().to_lowercase())
                 .collect();
 
-            Ok(allowed)
+            Ok(disallowed)
 
     }
 
@@ -82,24 +82,24 @@ impl Wordifier {
     pub fn new() -> Result<Self, WordifierError> {
         let config = WordifierConfig::from_env()?;
 
-        let allowed_file = File::open(config.allowed_file)?;
+        let disallowed_file = File::open(config.disallowed_file)?;
         let standard_file = File::open(config.standard_file)?;
 
-        let allowed = Wordifier::parse_allowed(
-            std::io::BufReader::new(allowed_file))?;
+        let disallowed = Wordifier::parse_disallowed(
+            std::io::BufReader::new(disallowed_file))?;
         let standard = Wordifier::parse_standard(
             std::io::BufReader::new(standard_file))?;
 
 
         Ok(
             Wordifier{
-                allowed,
+                disallowed,
                 standard,
             })
     }
 
     pub fn words(&self, s: &String) -> Vec<String> {
-        let re = Regex::new("\\.,!\\?-':;").unwrap();
+        let re = Regex::new("[\\.,!\\?\\-':;\\d\\\\\\*\\(\\)]+").unwrap();
         
         re.replace_all(
             s.to_lowercase().as_str(), " ")
@@ -107,9 +107,8 @@ impl Wordifier {
             .split_whitespace()
             .map(|word| word.trim().to_owned())
             .map(|w| self.standard.get(&w).unwrap_or(&w).to_owned())
-            .filter(|w| self.allowed.contains(w))
+            .filter(|w| !self.disallowed.contains(w))
             .collect()
-
     }
 }
 

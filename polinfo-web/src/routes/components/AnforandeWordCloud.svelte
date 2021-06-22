@@ -4,7 +4,7 @@ import PartiSymbol from "./PartiSymbol.svelte";
 import * as d3 from "d3";
 import { onMount } from 'svelte';
 import DoubleRangeSlider from './DoubleRangeSlider.svelte'
-import { getAnforandePrefixSum, avgPrefixSum, normCounts, normPrefixSum } from '../../api/anforande.js';
+import { getAnforandePrefixSum, subtract} from '../../api/anforande.js';
 
 export let height;
 export let affiliation;
@@ -16,27 +16,15 @@ var dates = []
 var prefixSum = [];
 
 
-let wordCountsFromPrefixSum = (prefixSum) => {
-  let wc = [];
-  for (var key in prefixSum) {
-    wc.push({text: key, count: prefixSum[key]});
+let wordCountsFromCounts = (counts) => {
+  counts = Object.entries(counts).sort((lhs, rhs) => lhs[1] > rhs[1]).slice(-100)
+
+  return counts.map(([word, count]) => {
+    return {text: word, count: count}
   }
-  return wc;
+  )
 }
 
-let subtract = (lhs, rhs) => {
-  let r = {};
-  for (var key in lhs) {
-    if (key in rhs) {
-      r[key] = Math.max(lhs[key] - rhs[key], 0);
-    } else {
-      r[key] = lhs[key];
-    }
-  }
-
-  return r;
-}
- 
  
 let onIntervalPick = (fromIndex, toIndex) => {
   // in the integral eot is same as last date.
@@ -46,39 +34,34 @@ let onIntervalPick = (fromIndex, toIndex) => {
   toIndex -= 1;
 
   let end = prefixSum[toIndex];
-  let avgEnd = avgPrefixSum[dates[toIndex + 1]];
-
-  var start, avgStart;
+  var start;
   if (fromIndex < 0) {
     start = {};
-    avgStart = {};
   } else {
     start = prefixSum[fromIndex];
-    avgStart = avgPrefixSum[dates[fromIndex + 1]];
   }
 
-  let normalizedCounts = subtract(end, start);
-  let avgNormalizedCounts = subtract(avgEnd, avgStart);
 
-  wordCounts = wordCountsFromPrefixSum(
-  subtract(normalizedCounts, avgNormalizedCounts))
+  wordCounts = wordCountsFromCounts(subtract(end, start))
 }
 
 
 onMount(async () => {
 
-  d3.select("#anforande-wordcloud-container")
+  d3.select(".anforande-wordcloud-container-" + affiliation)
   .style('height', height + "px")
 
   let res = await getAnforandePrefixSum(affiliation);
-  prefixSum = normPrefixSum(res.counts);
+  
+
+
+  /*console.log("res", res)*/
 
   dates = ["beginning of time"];
   dates.push(...res.dates)
-
+  prefixSum = res.counts
 
   onIntervalPick(0, dates.length - 1);
-
 
   loading = false;
 })
@@ -156,7 +139,8 @@ onMount(async () => {
 </style>
 
 
-<div class="anforande-wordcloud-container" id="anforande-wordcloud-container">
+<div class="anforande-wordcloud-container 
+             anforande-wordcloud-container-{affiliation}">
   {#if loading}
     <div class="loader">Loading...</div>
 

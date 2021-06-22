@@ -49,7 +49,7 @@ let getWords = () => {
 }
 
 let render = (words) => {
-  console.log("rendering", words);
+  /*console.log("rendering", words);*/
   var layout = cloud()
     .size([width, height])
     .words(words)
@@ -57,7 +57,7 @@ let render = (words) => {
     .rotate(function() { return (Math.random() - 0.5) * 70; })
     .font("Impact")
     .fontSize(function(d) { 
-      console.log("setting fontsize on", d);
+      /*console.log("setting fontsize on", d);*/
       return d.size; 
     })
     
@@ -66,7 +66,7 @@ let render = (words) => {
   layout.start();
 
   function draw(words) {
-    console.log("drawing", words);
+    /*console.log("drawing", words);*/
     d3.select("#" + id).append("svg")
         .attr("width", layout.size()[0])
         .attr("height", layout.size()[1])
@@ -92,7 +92,7 @@ let render = (words) => {
 
 afterUpdate(() => {
   words = getWords();
-  console.log("Words", words);
+  /*console.log("Words", words);*/
 
   if (componentIsMounted) {
     d3.select("#" + id).select("svg").remove();
@@ -105,7 +105,7 @@ onMount(async () => {
   width = rect.width;
 
   words = getWords();
-  console.log("Words", words);
+  /*console.log("Words", words);*/
 
 
   render(words);

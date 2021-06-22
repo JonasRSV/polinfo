@@ -30,6 +30,7 @@ pub enum Affiliation {
     KD,
     M,
     C,
+    Other
 }
 
 impl From<Affiliation> for String {
@@ -43,7 +44,26 @@ impl From<Affiliation> for String {
             Affiliation::KD => "KD".to_owned(),
             Affiliation::M => "M".to_owned(),
             Affiliation::C => "C".to_owned(),
+            Affiliation::Other => "Other".to_owned()
         }
+    }
+}
+
+impl Into<Affiliation> for String {
+    fn into(self) -> Affiliation {
+        match self.as_str() {
+            "MP" => Affiliation::MP,
+            "V" => Affiliation::V,
+            "SD" => Affiliation::SD,
+            "S" => Affiliation::S,
+            "KD" => Affiliation::KD,
+            "M" => Affiliation::M,
+            "C" => Affiliation::C,
+            "L" => Affiliation::L,
+            _ => Affiliation::Other
+
+        }
+
     }
 }
 
@@ -53,13 +73,13 @@ pub struct AnforandeRequest {
 }
 
 #[derive(Debug)]
-pub struct Anforande {
+pub struct TextTime {
     pub time: chrono::NaiveDateTime,
     pub content: String
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PrefixSum {
-    pub counts: Vec<HashMap<String, u64>>,
+    pub counts: Vec<HashMap<String, f64>>,
     pub dates: Vec<NaiveDateTime>
 }
